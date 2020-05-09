@@ -27,6 +27,11 @@ class JavaScript():
         args, kwarg = self.parse_arguments(node.args)
         body = '; '.join([self.parse_node(node) for node in node.body])
         name = node.name
+
+        # byte_at -> noop
+        if node.name == 'byte_at':
+            return ''
+
         out = " function " + name + '(' + args + ') {'
         out += ' ' + body
         out += "};"
@@ -88,6 +93,8 @@ class JavaScript():
 
         if func == 'ord':
             return args + '.charCodeAt(0)'
+        if func == 'byte_at':
+            return node.args[0].id + '[' + node.args[1].id + ']'
 
         return func + '(' + args + ')'
 

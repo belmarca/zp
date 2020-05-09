@@ -80,15 +80,7 @@ function comp_Num(cte, ast) {
     };
     return code;
 };
-
-function byte_at(x, i) {
-    if (Object.is((typeof str), x)) {
-        return x[i].charCodeAt(0);
-    } else {
-        return x[i];
-    }
-};
 x[i] = 2;
 p[k];
-byte_at(r, s);
+r[s];
 ```

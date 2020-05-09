@@ -134,6 +134,10 @@ class JavaScript():
                 pos = self.parse_node(x.slice)
                 return arr + '[' + pos + '] = ' + py + ';'
 
+            if isinstance(y, Call) and y.func.id == 'bytearray':
+                px = self.parse_node(x)
+                return ' var ' + px + ' = ' + 'new Uint8Array(' + str(y.args[0].n) + ')'
+
             px = self.parse_node(x)
             return ' var ' + px + " = " + py + ';'
 

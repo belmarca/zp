@@ -59,6 +59,12 @@ def parse_node(node):
         return parse_Expr(node)
     elif isinstance(node, Attribute):
         return parse_Attribute(node)
+    elif isinstance(node, Bytes):
+        return parse_Bytes(node)
+    elif isinstance(node, Subscript):
+        return parse_Subscript(node)
+    elif isinstance(node, Index):
+        return parse_Index(node)
 
 
 # Set up backends
@@ -75,6 +81,14 @@ def parse_Assign(node):
 
 def parse_Attribute(node):
     return backend.parse_Attribute(node)
+
+
+def parse_Subscript(node):
+    return backend.parse_Subscript(node)
+
+
+def parse_Index(node):
+    return parse_node(node.value)
 
 
 def parse_If(node):

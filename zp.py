@@ -1,3 +1,4 @@
+import re
 from common import *
 
 # Import backends
@@ -56,6 +57,8 @@ def parse_node(node):
         return parse_Sub(node)
     elif isinstance(node, Expr):
         return parse_Expr(node)
+    elif isinstance(node, Attribute):
+        return parse_Attribute(node)
 
 
 # Set up backends
@@ -68,6 +71,10 @@ backend = object()
 
 def parse_Assign(node):
     return backend.parse_Assign(node)
+
+
+def parse_Attribute(node):
+    return backend.parse_Attribute(node)
 
 
 def parse_If(node):
@@ -179,17 +186,19 @@ def compile_file(input_file, _backend):
     if input_file[-3:] != '.py':
         raise Exception
 
-    if _backend.name == 'Scheme':
-        output_file = input_file[:-3] + '.scm'
-    elif _backend.name == 'JavaScript':
-        output_file = input_file[:-3] + '.js'
-    else:
-        raise Exception
-
     # Hacky...
     global backend
     backend = _backend
 
     target_code = parse_file(input_file)
+
+    if _backend.name == 'Scheme':
+        output_file = input_file[:-3] + '.scm'
+    elif _backend.name == 'JavaScript':
+        output_file = input_file[:-3] + '.js'
+        target_code = re.sub(r'(;)\1+', r'\1', target_code)
+    else:
+        raise Exception
+
     with open(output_file, 'w') as f:
         print(target_code, file=f)

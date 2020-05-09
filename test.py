@@ -30,3 +30,9 @@ def fib(n):
     else:
         return fib(n-1) + fib(n-2)
 
+
+def comp_Num(cte, ast):
+    val = ast.x  # literal value
+    def code(rte, cont):
+        return step_end(rte, cont, ast, val)
+    return code

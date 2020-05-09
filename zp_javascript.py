@@ -91,13 +91,18 @@ class JavaScript():
             py = self.parse_node(y)
             return ' var ' + px + " = " + py + ';'
 
-        if isinstance(targets[0], Tuple):
+        if isinstance(value, Tuple):
             target_elts = targets[0].elts
             value_elts = value.elts
             out = ' '.join([define(target_elts[i], value_elts[i]) for i in range(len(target_elts))])
         else:
             out = define(targets[0], value)
         return out
+
+    def parse_Attribute(self, node):
+        value = self.parse_node(node.value)
+        attr = node.attr
+        return value + '.' + attr
 
     def parse_Return(self, node):
         return 'return ' + self.parse_node(node.value) + ';'

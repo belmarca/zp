@@ -10,7 +10,7 @@ compile_file('test.py', javascript)
 
 Contents of `test.scm` (pretty-printed):
 
-```
+```scheme
 (define x 1)
 (define y 2)
 (define z 3)
@@ -21,22 +21,16 @@ Contents of `test.scm` (pretty-printed):
 (define s "Hello, \"world\"!")
 (define t "Hello, \"world!")
 (define u "Hello, \"\"\"world!")
-
-(define function_name
-  (lambda (x y z) x))
-
-(define myfun
-  (lambda (x y)
-    (if (and (> x y) (< x 0))
-        x)))
-
+(define function_name (lambda (x y z) x))
+(define myfun (lambda (x y) (if (and (> x y) (< x 0)) x)))
 (define fib
   (lambda (n)
-    (if (equal? n 1)
-        1
-        (if (equal? n 0)
-            0
-            (+ (fib  (- n 1)) (fib  (- n 2)))))))
+    (if (equal? n 1) 1 (if (equal? n 0) 0 (+ (fib (- n 1)) (fib (- n 2)))))))
+(define comp_Num
+  (lambda (cte ast)
+    (define val (ast-x ast))
+    (define code (lambda (rte cont) (step_end rte cont ast val)))
+    code))
 ```
 
 Contents of `test.js` (pretty-printed):
@@ -73,5 +67,14 @@ function fib(n) {
             return fib(n - 1) + fib(n - 2);
         }
     }
+};
+
+function comp_Num(cte, ast) {
+    var val = ast.x;
+
+    function code(rte, cont) {
+        return step_end(rte, cont, ast, val);
+    };
+    return code;
 };
 ```

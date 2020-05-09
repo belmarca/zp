@@ -31,6 +31,9 @@ Contents of `test.scm` (pretty-printed):
     (define val (ast-x ast))
     (define code (lambda (rte cont) (step_end rte cont ast val)))
     code))
+(vector-set! x i 2)
+(vector-ref p k)
+(u8vector-ref r s)
 ```
 
 Contents of `test.js` (pretty-printed):
@@ -77,4 +80,15 @@ function comp_Num(cte, ast) {
     };
     return code;
 };
+
+function byte_at(x, i) {
+    if (Object.is((typeof str), x)) {
+        return x[i].charCodeAt(0);
+    } else {
+        return x[i];
+    }
+};
+x[i] = 2;
+p[k];
+byte_at(r, s);
 ```

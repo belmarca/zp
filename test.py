@@ -36,3 +36,15 @@ def comp_Num(cte, ast):
     def code(rte, cont):
         return step_end(rte, cont, ast, val)
     return code
+
+
+def byte_at(x, i):
+    # returns an integer between 0 and 255
+    if type(x) is str:
+        return ord(x[i])
+    else:
+        return x[i]
+
+x[i] = 2
+p[k]
+byte_at(r, s)

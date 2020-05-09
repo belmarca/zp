@@ -34,7 +34,28 @@ class JavaScript():
 
     def parse_Compare(self, node):
         def compare(op, l, r):
-            out = ' (' + self.parse_node(l) + ' ' + self.parse_node(op) + ' ' + self.parse_node(r) + ')'
+            if isinstance(op, Is):
+                out = self.parse_node(op) + self.parse_node(l) + ', ' + self.parse_node(r) + ')'
+            else:
+                out = ' (' + self.parse_node(l) + ' ' + self.parse_node(op) + ' ' + self.parse_node(r) + ')'
+            return out
+
+        def type_compare(op, arg, typ):
+            if typ == 'str':
+                typ = 'string'
+            elif typ == 'int':
+                typ = 'number'
+            elif typ == 'float':
+                typ = 'number'
+            elif typ == 'bool':
+                typ = 'boolean'
+
+            if isinstance(op, Is):
+                out = self.parse_node(op) + '(typeof ' + arg + ')'
+                out += ', ' + typ + ')'
+            else:
+                out = ' ((typeof ' + arg + ') ' + self.parse_node(op)
+                out += ' ' + typ + ')'
             return out
 
         left = node.left
@@ -42,9 +63,18 @@ class JavaScript():
         comparators = node.comparators
         # there can be more than one comparator, in which case we 'and'
         if len(ops) > 1:
+            if isinstance(left, Call) and \
+               left.func.id == 'type':
+                out = ' && '.join([type_compare(ops[i], comparators[i].id, left.args[i].id)
+                                   for i in range(len(ops))])
+                return out
+
             out = ' && '.join([compare(ops[i], left, comparators[i])
                                for i in range(len(ops))])
         else:
+            if isinstance(left, Call):
+                if left.func.id == 'type':
+                    return type_compare(ops[0], comparators[0].id, left.args[0].id)
             out = compare(ops[0], left, comparators[0])
         return out
 
@@ -55,6 +85,9 @@ class JavaScript():
 
         if keywords != []:
             raise Exception
+
+        if func == 'ord':
+            return args + '.charCodeAt(0)'
 
         return func + '(' + args + ')'
 
@@ -87,8 +120,14 @@ class JavaScript():
             raise Exception
 
         def define(x, y):
-            px = self.parse_node(x)
             py = self.parse_node(y)
+
+            if isinstance(x, Subscript):
+                arr = self.parse_node(x.value)
+                pos = self.parse_node(x.slice)
+                return arr + '[' + pos + '] = ' + py + ';'
+
+            px = self.parse_node(x)
             return ' var ' + px + " = " + py + ';'
 
         if isinstance(value, Tuple):
@@ -104,8 +143,17 @@ class JavaScript():
         attr = node.attr
         return value + '.' + attr
 
+    def parse_Subscript(self, node):
+        value = self.parse_node(node.value)
+        _slice = self.parse_node(node.slice)
+
+        return value + '[' + _slice + ']'
+
     def parse_Return(self, node):
         return 'return ' + self.parse_node(node.value) + ';'
+
+    def parse_Expr(self, node):
+        return self.parse_node(node.value) + ';'
 
     @staticmethod
     def parse_arg(node):
@@ -143,3 +191,7 @@ class JavaScript():
     @staticmethod
     def parse_NotEq(node):
         return "!=="
+
+    @staticmethod
+    def parse_Is(node):
+        return "Object.is("

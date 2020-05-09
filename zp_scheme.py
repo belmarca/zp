@@ -170,6 +170,9 @@ class Scheme():
     def parse_Return(self, node):
         return self.parse_node(node.value)
 
+    def parse_Expr(self, node):
+        return self.parse_node(node.value)
+
     @staticmethod
     def parse_arg(node):
         arg = node.arg

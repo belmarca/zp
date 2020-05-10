@@ -1,5 +1,15 @@
+import argparse
 import re
 from common import *
+
+parser = argparse.ArgumentParser(description='CLI to zp bootstrap compiler.')
+parser.add_argument('-f', '--file',  metavar='FILE', type=str, nargs=1,
+                    help='file to compile')
+parser.add_argument('-t', '--target',  metavar='TARGET', type=str, nargs=1,
+                    help='target language')
+
+cli_args = parser.parse_args()
+
 
 # Import backends
 from zp_scheme import Scheme
@@ -251,3 +261,13 @@ def compile_file(input_file, _backend):
 
     with open(output_file, 'w') as f:
         print(target_code, file=f)
+
+    print(f"{input_file} compiled successfully to {output_file}.")
+
+
+if cli_args.target[0] == 'scheme':
+    compile_file(cli_args.file[0], scheme)
+elif cli_args.target[0] == 'javascript':
+    compile_file(cli_args.file[0], javascript)
+else:
+    raise Exception

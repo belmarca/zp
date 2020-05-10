@@ -182,8 +182,8 @@ def parse_Name(node):
 
 
 def parse_Str(node):
-    out = '"' + node.s.replace('"', '\\"') + '"'
-    return out
+    # TODO: Fix string encoding issues, maybe handling per backend.
+    return '"' + node.s.encode('unicode-escape').decode().replace('"', '\\"') + '"'
 
 
 def parse_FunctionDef(node):

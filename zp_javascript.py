@@ -187,6 +187,7 @@ class JavaScript():
         # for i in range(10):
         #     body
         # for node.target.id in node.iter (Call):
+        #     node.body (array)
         target = self.parse_node(node.target)
         _iter = self.parse_node(node.iter)  # handle 'range' in parse_Call
         body = '; '.join([self.parse_node(node) for node in node.body])

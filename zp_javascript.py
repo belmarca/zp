@@ -18,23 +18,30 @@ class JavaScript():
 
         return out
 
-    def parse_arguments(self, node):
-        args = ','.join([self.parse_arg(arg) for arg in node.args])
+    def parse_arguments(self, node, begin=0, end=None):
+        if end is not None:
+            args = ','.join([self.parse_arg(arg) for arg in node.args[begin:end]])
+        args = ','.join([self.parse_arg(arg) for arg in node.args[begin:]])
         kwarg = ''
         return (args, kwarg)
 
     def parse_FunctionDef(self, node):
-        args, kwarg = self.parse_arguments(node.args)
         body = '; '.join([self.parse_node(node) for node in node.body])
         name = node.name
 
         # byte_at -> noop
-        if node.name == 'byte_at':
+        if name == 'byte_at':
             return ''
+        if name == '__init__':
+            if node.args.args[0].arg == 'self':
+                args, kwarg = self.parse_arguments(node.args, 1)
+            out =' constructor(' + args + ') { var self = this; '  # quick hack
+            out += body.replace('var ', '') + '};'
+            return out
 
-        out = " function " + name + '(' + args + ') {'
-        out += ' ' + body
-        out += "};"
+        args, kwarg = self.parse_arguments(node.args)
+
+        out = " function " + name + '(' + args + ') { ' + body + '};'
         return out
 
     def parse_Compare(self, node):
@@ -214,6 +221,16 @@ class JavaScript():
             return ', '.join(['0', upper])
         else:
             raise Exception
+
+    def parse_ClassDef(self, node):
+        # ('name', 'bases', 'keywords', 'body', 'decorator_list')
+        name = node.name
+        body = '; '.join([self.parse_node(node) for node in node.body])
+        bases = node.bases  # TODO: implement (multiple) inheritance
+        keywords = node.keywords  # ignored
+        decorator_list = node.decorator_list  # ignored
+
+        return 'class ' + name + ' {' + body + '}'
 
     @staticmethod
     def parse_arg(node):

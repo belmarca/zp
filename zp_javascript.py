@@ -86,6 +86,7 @@ class JavaScript():
     def parse_Call(self, node):
         func = self.parse_node(node.func)
         args = ','.join([self.parse_node(arg) for arg in node.args])
+        nargs = len(node.args)
         keywords = node.keywords
 
         if keywords != []:
@@ -95,6 +96,14 @@ class JavaScript():
             return args + '.charCodeAt(0)'
         if func == 'byte_at':
             return node.args[0].id + '[' + node.args[1].id + ']'
+        if func == 'range':
+            # we will use
+            # [...Array(5).keys()];
+            # to allow using x = range(10), for example.
+            # args: start, stop, step
+            if nargs == 1:
+                return '[...Array(' + str(node.args[0].n) + ').keys()]'
+            # TODO: handle other cases!
 
         return func + '(' + args + ')'
 
@@ -134,9 +143,13 @@ class JavaScript():
                 pos = self.parse_node(x.slice)
                 return arr + '[' + pos + '] = ' + py + ';'
 
-            if isinstance(y, Call) and y.func.id == 'bytearray':
-                px = self.parse_node(x)
-                return ' var ' + px + ' = ' + 'new Uint8Array(' + str(y.args[0].n) + ')'
+            if isinstance(y, Call):
+                if y.func.id == 'bytearray':
+                    px = self.parse_node(x)
+                    out = ' var ' + px + ' = ' + \
+                        'new Uint8Array(' + str(y.args[0].n) + ')'
+                    return out
+
 
             px = self.parse_node(x)
             return ' var ' + px + " = " + py + ';'
@@ -165,6 +178,21 @@ class JavaScript():
 
     def parse_Expr(self, node):
         return self.parse_node(node.value) + ';'
+
+    def parse_For(self, node):
+        # We don't implement for/else.
+
+        #TODO: do multiple args (tuples)
+
+        # for i in range(10):
+        #     body
+        # for node.target.id in node.iter (Call):
+        target = self.parse_node(node.target)
+        _iter = self.parse_node(node.iter)  # handle 'range' in parse_Call
+        body = '; '.join([self.parse_node(node) for node in node.body])
+
+        out = ' for (const ' + target + ' in ' + _iter + ') {' + body + '}'
+        return out
 
     @staticmethod
     def parse_arg(node):

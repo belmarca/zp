@@ -67,6 +67,8 @@ def parse_node(node):
         return parse_Index(node)
     elif isinstance(node, Is):
         return parse_Is(node)
+    elif isinstance(node, For):
+        return parse_For(node)
 
 
 # Set up backends
@@ -111,6 +113,10 @@ def parse_Call(node):
 
 def parse_Expr(node):
     return backend.parse_Expr(node)
+
+
+def parse_For(node):
+    return backend.parse_For(node)
 
 
 def parse_Add(node):

@@ -104,6 +104,10 @@ class JavaScript():
             if nargs == 1:
                 return '[...Array(' + str(node.args[0].n) + ').keys()]'
             # TODO: handle other cases!
+        if func[-14:] == 'indents.append':
+            return func[:-7] + '.push(' + args + ')'
+        if func == 'len':
+            return args + '.length'
 
         return func + '(' + args + ')'
 

@@ -75,6 +75,8 @@ def parse_node(node):
         return parse_ClassDef(node)
     elif isinstance(node, List):
         return parse_List(node)
+    elif isinstance(node, IfExp):
+        return parse_IfExp(node)
 
 
 # Set up backends
@@ -107,6 +109,10 @@ def parse_Is(node):
 
 def parse_If(node):
     return backend.parse_If(node)
+
+
+def parse_IfExp(node):
+    return backend.parse_IfExp(node)
 
 
 def parse_BinOp(node):
@@ -190,6 +196,11 @@ def parse_Name(node):
 def parse_Str(node):
     # TODO: Fix string encoding issues, maybe handling per backend.
     return '"' + node.s.encode('unicode-escape').decode().replace('"', '\\"') + '"'
+
+def parse_Bytes(node):
+    return '"' + node.s.decode('utf-8').encode('unicode-escape').decode().replace('"', '\\"') + '"'
+    # return backend.parse_Bytes(node)
+
 
 def parse_Slice(node):
     return backend.parse_Slice(node)

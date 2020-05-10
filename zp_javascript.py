@@ -101,9 +101,9 @@ class JavaScript():
 
         if func == 'ord':
             return args + '.charCodeAt(0)'
-        if func == 'byte_at':
+        elif func == 'byte_at':
             return node.args[0].id + '[' + node.args[1].id + ']'
-        if func == 'range':
+        elif func == 'range':
             # we will use
             # [...Array(5).keys()];
             # to allow using x = range(10), for example.
@@ -111,10 +111,23 @@ class JavaScript():
             if nargs == 1:
                 return '[...Array(' + str(node.args[0].n) + ').keys()]'
             # TODO: handle other cases!
-        if func[-14:] == 'indents.append':
+        elif func[-14:] == 'indents.append':
             return func[:-7] + '.push(' + args + ')'
-        if func == 'len':
+        elif func == 'len':
             return args + '.length'
+        elif func == 'isinstance':
+            # we need to handle builtin types (change their names)
+            # vs class instance checks
+            obj = self.parse_node(node.args[0])
+            klass = self.parse_node(node.args[1])
+            if klass == 'str':
+                return '((typeof ' + obj + ') === "string")'
+            elif klass == 'int' or klass == 'float':
+                return '((typeof ' + obj + ') === "number")'
+            elif klass == 'bytes':
+                return '(' + obj + ' instanceof Uint8Array)'
+            else:  # default to class
+                return '(' + obj + ' instanceof ' + klass + ')'
 
         return func + '(' + args + ')'
 
@@ -235,6 +248,13 @@ class JavaScript():
     def parse_List(self, node):
         elts = ', '.join([self.parse_node(e) for e in node.elts])
         return '[' + elts + ']'
+
+    def parse_IfExp(self, node):
+        # ('test', 'body', 'orelse')
+        test = self.parse_node(node.test)  # Compare, BoolOp
+        body = self.parse_node(node.body)
+        orelse = self.parse_node(node.orelse)
+        return ' (' + test + ' ? ' + body + ' : ' + orelse + ')'
 
     @staticmethod
     def parse_arg(node):

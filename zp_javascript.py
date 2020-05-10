@@ -175,6 +175,9 @@ class JavaScript():
         value = self.parse_node(node.value)
         _slice = self.parse_node(node.slice)
 
+        if isinstance(node.slice, Slice):
+            return value + '.slice(' + _slice + ')'
+
         return value + '[' + _slice + ']'
 
     def parse_Return(self, node):
@@ -198,6 +201,19 @@ class JavaScript():
 
         out = ' for (const ' + target + ' in ' + _iter + ') {' + body + '}'
         return out
+
+    def parse_Slice(self, node):
+        lower = self.parse_node(node.lower)
+        upper = self.parse_node(node.upper)
+        step = self.parse_node(node.step)  # ignored
+        if lower is not None and upper is not None:
+            return ', '.join([lower, upper])
+        elif lower is not None:
+            return lower
+        elif upper is not None:
+            return ', '.join(['0', upper])
+        else:
+            raise Exception
 
     @staticmethod
     def parse_arg(node):

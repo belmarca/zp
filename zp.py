@@ -69,6 +69,8 @@ def parse_node(node):
         return parse_Is(node)
     elif isinstance(node, For):
         return parse_For(node)
+    elif isinstance(node, Slice):
+        return parse_Slice(node)
 
 
 # Set up backends
@@ -185,6 +187,8 @@ def parse_Str(node):
     # TODO: Fix string encoding issues, maybe handling per backend.
     return '"' + node.s.encode('unicode-escape').decode().replace('"', '\\"') + '"'
 
+def parse_Slice(node):
+    return backend.parse_Slice(node)
 
 def parse_FunctionDef(node):
     return backend.parse_FunctionDef(node)

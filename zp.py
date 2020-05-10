@@ -244,14 +244,10 @@ def compile_file(input_file, _backend):
     backend = _backend
 
     target_code = parse_file(input_file)
+    output_file = input_file[:-3] + backend.ext
 
-    if _backend.name == 'Scheme':
-        output_file = input_file[:-3] + '.scm'
-    elif _backend.name == 'JavaScript':
-        output_file = input_file[:-3] + '.js'
+    if _backend.name == 'JavaScript':
         target_code = re.sub(r'(;)\1+', r'\1', target_code)
-    else:
-        raise Exception
 
     with open(output_file, 'w') as f:
         print(target_code, file=f)

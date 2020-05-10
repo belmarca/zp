@@ -3,6 +3,7 @@ from common import *
 class JavaScript():
 
     name = 'JavaScript'
+    ext = '.js'
 
     def __init__(self, parse_node):
         self.parse_node = parse_node

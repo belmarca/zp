@@ -232,6 +232,10 @@ class JavaScript():
 
         return 'class ' + name + ' {' + body + '}'
 
+    def parse_List(self, node):
+        elts = ', '.join([self.parse_node(e) for e in node.elts])
+        return '[' + elts + ']'
+
     @staticmethod
     def parse_arg(node):
         arg = node.arg

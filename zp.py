@@ -73,6 +73,8 @@ def parse_node(node):
         return parse_Slice(node)
     elif isinstance(node, ClassDef):
         return parse_ClassDef(node)
+    elif isinstance(node, List):
+        return parse_List(node)
 
 
 # Set up backends
@@ -198,6 +200,10 @@ def parse_FunctionDef(node):
 
 def parse_ClassDef(node):
     return backend.parse_ClassDef(node)
+
+
+def parse_List(node):
+    return backend.parse_List(node)
 
 
 def parse_arguments(node):

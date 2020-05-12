@@ -257,6 +257,11 @@ class JavaScript():
         orelse = self.parse_node(node.orelse)
         return ' (' + test + ' ? ' + body + ' : ' + orelse + ')'
 
+    def parse_Raise(self, node):
+        exc = self.parse_node(node.exc)
+        cause = self.parse_node(node.cause)
+        return ' throw "' + exc.encode('unicode-escape').decode().replace('"', '\\"') + '";'
+
     @staticmethod
     def parse_arg(node):
         arg = node.arg

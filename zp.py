@@ -87,6 +87,8 @@ def parse_node(node):
         return parse_List(node)
     elif isinstance(node, IfExp):
         return parse_IfExp(node)
+    elif isinstance(node, Raise):
+        return parse_Raise(node)
 
 
 # Set up backends
@@ -95,6 +97,10 @@ javascript = JavaScript(parse_node)
 
 # Empty default
 backend = object()
+
+
+def parse_Raise(node):
+    return backend.parse_Raise(node)
 
 
 def parse_Assign(node):
@@ -209,7 +215,6 @@ def parse_Str(node):
 
 def parse_Bytes(node):
     return '"' + node.s.decode('utf-8').encode('unicode-escape').decode().replace('"', '\\"') + '"'
-    # return backend.parse_Bytes(node)
 
 
 def parse_Slice(node):

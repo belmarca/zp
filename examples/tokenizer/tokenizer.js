@@ -223,7 +223,6 @@ function append_eol(buf) {
 };
 
 function init_stats() {
-    ;
     var found = new Array(67).fill(0);
     var stats = {};
     stats["bol"] = 0;
@@ -240,6 +239,7 @@ function init_stats() {
     stats["k == KIND_CONTINUATION"] = 0;
     stats["OTHER"] = 0;
     stats["SPECIAL"] = 0;
+    return [found, stats];
 };
 
 function inc_found(index) {
@@ -407,11 +407,11 @@ function get_token(ts) {
     };
     var buf = ts.buf;
     var pos = ts.end;
-    while (True) {
+    while (true) {
         if ((((pos === ts.line_start)) && ((ts.paren_level === 0)))) {
             inc_stats("bol");
             var col = 0;
-            while (True) {
+            while (true) {
                 var c = buf[pos];
                 pos += 1;
                 if ((c === 32)) {
@@ -429,7 +429,7 @@ function get_token(ts) {
                 }
             };
             if ((c === 35)) {
-                while (True) {
+                while (true) {
                     var c = buf[pos];
                     pos += 1;
                     if ((((c === 10)) || ((c === 13)))) {
@@ -469,7 +469,7 @@ function get_token(ts) {
                 return null;
             };
             if ((col < ts.indents[i])) {
-                while (True) {
+                while (true) {
                     if ((ts.indents[i - 1] >= col)) {
                         break;
                     };
@@ -489,7 +489,7 @@ function get_token(ts) {
             };
             var k = char_kind[c];
         } else {
-            while (True) {
+            while (true) {
                 var c = buf[pos];
                 var k = char_kind[c];
                 pos += 1;
@@ -516,7 +516,7 @@ function get_token(ts) {
         ts.start = pos - 1;
         if ((k === KIND_NAME)) {
             inc_stats("k == KIND_NAME");
-            while (True) {
+            while (true) {
                 var next = buf[pos];
                 var k = char_kind[next];
                 if ((k > KIND_NAME)) {
@@ -529,20 +529,20 @@ function get_token(ts) {
                 if ((((c === 66)) || ((c === 85)))) {
                     var kind = ((c === 66) ? BYTE_STRING : UNICODE_STRING);
                     if ((ts.start === pos - 1)) {
-                        get_string(ts, pos + 1, next, kind, False);
+                        get_string(ts, pos + 1, next, kind, false);
                         return null;
                     };
                     if ((ts.start === pos - 2)) {
                         var c2 = buf[ts.start + 1] & 223;
                         if ((c2 === 82)) {
-                            get_string(ts, pos + 1, next, kind, True);
+                            get_string(ts, pos + 1, next, kind, true);
                             return null;
                         }
                     }
                 } else {
                     if ((c === 82)) {
                         if ((ts.start === pos - 1)) {
-                            get_string(ts, pos + 1, next, PLAIN_STRING, True);
+                            get_string(ts, pos + 1, next, PLAIN_STRING, true);
                             return null;
                         }
                     }
@@ -597,7 +597,7 @@ function get_token(ts) {
                 if ((k === KIND_DOT)) {
                     inc_stats("k == KIND_DOT");
                     if ((char_kind[next] >= 9)) {
-                        while (True) {
+                        while (true) {
                             pos += 1;
                             var next = buf[pos];
                             if ((char_kind[next] > 9)) {
@@ -624,7 +624,7 @@ function get_token(ts) {
                 if ((k === KIND_STRING)) {
                     inc_stats("k == KIND_STRING");
                     inc_found(KIND_STRING);
-                    get_string(ts, pos, c, PLAIN_STRING, False);
+                    get_string(ts, pos, c, PLAIN_STRING, false);
                     return null;
                 };
                 if ((k < KIND_STRING)) {
@@ -650,7 +650,7 @@ function get_token(ts) {
                         };
                         var next = buf[pos];
                     };
-                    while (True) {
+                    while (true) {
                         var k = char_kind[next];
                         if ((k >= 9)) {
                             {};
@@ -672,7 +672,7 @@ function get_token(ts) {
                     } else {
                         if ((k === 100 + KIND_DOT)) {
                             pos += 1;
-                            while (True) {
+                            while (true) {
                                 var next = buf[pos];
                                 var k = char_kind[next];
                                 if ((k > 9)) {
@@ -691,7 +691,7 @@ function get_token(ts) {
                             };
                             var k = char_kind[next];
                             if ((k >= 9)) {
-                                while (True) {
+                                while (true) {
                                     pos += 1;
                                     var next = buf[pos];
                                     var k = char_kind[next];
@@ -786,7 +786,7 @@ function get_string(ts, pos, c, kind, regexpr) {
     var buf = ts.buf;
     if ((((buf[pos] === c)) && ((buf[pos + 1] === c)))) {
         pos += 2;
-        while (True) {
+        while (true) {
             var next = buf[pos];
             if ((((next === c)) && ((buf[pos + 1] === c)) && ((buf[pos + 2] === c)))) {
                 pos += 3;
@@ -806,7 +806,7 @@ function get_string(ts, pos, c, kind, regexpr) {
             }
         };
     } else {
-        while (True) {
+        while (true) {
             var next = buf[pos];
             if ((next === c)) {
                 pos += 1;
@@ -830,5 +830,16 @@ function get_string(ts, pos, c, kind, regexpr) {
     };
     ts.end = pos;
     ts.token = STRING;
+};
+var _stats = init_stats();
+var found = _stats[0];
+var stats = _stats[1];
+var ts = new TokenizerState("def foo(x,y):\n    return x+y\n");
+get_first_token(ts);
+while ((ts.token !== ENDMARKER)) {
+    var t = ts.token;
+    var name = tok_name[t];
+    console.log(name);
+    get_token(ts);
 };
 

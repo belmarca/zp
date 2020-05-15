@@ -251,10 +251,7 @@ def append_eol(buf):
 
 # TODO: remove when tokenizer is optimized.
 
-
 def init_stats():
-
-    global found, stats
 
     found = [0] * 67
 
@@ -273,6 +270,8 @@ def init_stats():
     stats["k == KIND_CONTINUATION"] = 0
     stats["OTHER"] = 0
     stats["SPECIAL"] = 0
+
+    return [found, stats]
 
 
 def inc_found(index):
@@ -1052,3 +1051,17 @@ def get_string(ts, pos, c, kind, regexpr):
     ts.end = pos
 
     ts.token = STRING
+
+_stats = init_stats()
+found = _stats[0]
+stats = _stats[1]
+
+ts = TokenizerState('def foo(x,y):\n    return x+y\n')
+
+get_first_token(ts)
+
+while ts.token != ENDMARKER:
+    t = ts.token
+    name = tok_name[t]
+    print(name)
+    get_token(ts)

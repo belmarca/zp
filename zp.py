@@ -252,7 +252,13 @@ def parse_Continue(node):
 
 
 def parse_NameConstant(node):
-    return str(node.value)
+    val = node.value
+    if val == True:
+        return 'true'
+    elif val == False:
+        return 'false'
+    else:
+        return str(node.value)
 
 
 def parse_Num(node):

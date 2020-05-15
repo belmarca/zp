@@ -209,8 +209,12 @@ class JavaScript():
                     return out
 
 
+
             px = self.parse_node(x)
-            return ' var ' + px + " = " + py + ';'
+            if isinstance(targets[0], Attribute):
+                    return ' ' + px + " = " + py + ';'
+            else:
+                    return ' var ' + px + " = " + py + ';'
 
         if isinstance(value, Tuple):
             target_elts = targets[0].elts

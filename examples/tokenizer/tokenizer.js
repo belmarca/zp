@@ -402,7 +402,7 @@ function get_first_token(ts) {
 function get_token(ts) {
     if ((ts.dedents > 0)) {
         ts.dedents -= 1;
-        var ts.token = DEDENT;
+        ts.token = DEDENT;
         return null;
     };
     var buf = ts.buf;
@@ -441,31 +441,31 @@ function get_token(ts) {
                 if ((((c === 13)) && ((buf[pos] === 10)))) {
                     pos += 1;
                 };
-                var ts.line_start = pos;
+                ts.line_start = pos;
                 ts.line_num += 1;
                 if ((pos < ts.buf_len)) {
                     continue;
                 };
-                var ts.start = ts.buf_len;
-                var ts.end = ts.buf_len;
+                ts.start = ts.buf_len;
+                ts.end = ts.buf_len;
                 var n = ts.indents.length - 1;
                 if ((n > 0)) {
-                    var ts.indents = [0];
-                    var ts.dedents = n - 1;
-                    var ts.token = DEDENT;
+                    ts.indents = [0];
+                    ts.dedents = n - 1;
+                    ts.token = DEDENT;
                     return null;
                 };
                 inc_found(KIND_EOF);
-                var ts.token = ENDMARKER;
+                ts.token = ENDMARKER;
                 return null;
             };
             var n = ts.indents.length;
             var i = n - 1;
             if ((ts.indents[i] < col)) {
                 ts.indents.push(col);
-                var ts.start = pos - 1;
-                var ts.end = pos - 1;
-                var ts.token = INDENT;
+                ts.start = pos - 1;
+                ts.end = pos - 1;
+                ts.token = INDENT;
                 return null;
             };
             if ((col < ts.indents[i])) {
@@ -477,14 +477,14 @@ function get_token(ts) {
                 };
                 if ((ts.indents[i - 1] !== col)) {
                     console.log("inconsistent dedent");
-                    var ts.token = ERRORTOKEN;
+                    ts.token = ERRORTOKEN;
                     return null;
                 };
-                var ts.indents = ts.indents.slice(0, i);
-                var ts.dedents = n - i - 1;
-                var ts.start = pos - 1;
-                var ts.end = pos - 1;
-                var ts.token = DEDENT;
+                ts.indents = ts.indents.slice(0, i);
+                ts.dedents = n - i - 1;
+                ts.start = pos - 1;
+                ts.end = pos - 1;
+                ts.token = DEDENT;
                 return null;
             };
             var k = char_kind[c];
@@ -501,19 +501,19 @@ function get_token(ts) {
                 if ((((c === 13)) && ((buf[pos] === 10)))) {
                     pos += 1;
                 };
-                var ts.line_start = pos;
+                ts.line_start = pos;
                 ts.line_num += 1;
                 if ((pos < ts.buf_len)) {
                     continue;
                 };
                 inc_found(KIND_EOF);
-                var ts.start = ts.buf_len;
-                var ts.end = ts.buf_len;
-                var ts.token = ENDMARKER;
+                ts.start = ts.buf_len;
+                ts.end = ts.buf_len;
+                ts.token = ENDMARKER;
                 return null;
             }
         };
-        var ts.start = pos - 1;
+        ts.start = pos - 1;
         if ((k === KIND_NAME)) {
             inc_stats("k == KIND_NAME");
             while (True) {
@@ -549,8 +549,8 @@ function get_token(ts) {
                 }
             };
             inc_found(KIND_NAME);
-            var ts.end = pos;
-            var ts.token = kw.get(buf.slice(ts.start, pos), NAME);
+            ts.end = pos;
+            ts.token = kw.get(buf.slice(ts.start, pos), NAME);
             return null;
         };
         if ((k >= KIND_AT)) {
@@ -564,8 +564,8 @@ function get_token(ts) {
                 }
             };
             inc_found(1);
-            var ts.end = pos;
-            var ts.token = kind_to_token[k];
+            ts.end = pos;
+            ts.token = kind_to_token[k];
             return null;
         };
         inc_stats("OTHER");
@@ -578,18 +578,18 @@ function get_token(ts) {
                     if ((((c === 13)) && ((next === 10)))) {
                         pos += 1;
                     };
-                    var ts.line_start = pos;
+                    ts.line_start = pos;
                     if ((pos > ts.buf_len)) {
-                        var ts.start = ts.buf_len;
-                        var ts.end = ts.buf_len;
-                        var ts.token = ENDMARKER;
+                        ts.start = ts.buf_len;
+                        ts.end = ts.buf_len;
+                        ts.token = ENDMARKER;
                         return null;
                     } else {
                         if ((((ts.paren_level > 0)) || ((ts.token === NEWLINE)))) {
                             continue;
                         } else {
-                            var ts.end = pos;
-                            var ts.token = NEWLINE;
+                            ts.end = pos;
+                            ts.token = NEWLINE;
                             return null;
                         }
                     }
@@ -605,20 +605,20 @@ function get_token(ts) {
                             }
                         };
                         inc_found(KIND_NUMBER);
-                        var ts.end = pos;
-                        var ts.token = NUMBER;
+                        ts.end = pos;
+                        ts.token = NUMBER;
                         return null;
                     } else {
                         if ((((next === 46)) && ((buf[pos + 1] === 46)))) {
                             inc_found(KIND_ELLIPSIS);
-                            var ts.end = pos + 2;
-                            var ts.token = ELLIPSIS;
+                            ts.end = pos + 2;
+                            ts.token = ELLIPSIS;
                             return null;
                         }
                     };
                     inc_found(KIND_DOT);
-                    var ts.end = pos;
-                    var ts.token = DOT;
+                    ts.end = pos;
+                    ts.token = DOT;
                     return null;
                 };
                 if ((k === KIND_STRING)) {
@@ -703,8 +703,8 @@ function get_token(ts) {
                         }
                     };
                     inc_found(KIND_NUMBER);
-                    var ts.end = pos;
-                    var ts.token = NUMBER;
+                    ts.end = pos;
+                    ts.token = NUMBER;
                     return null;
                 };
                 if ((k === KIND_COMMENT)) {
@@ -724,7 +724,7 @@ function get_token(ts) {
                 console.log("error bad continuation line");
                 console.log("c=" + repr(c));
                 console.log("next=" + repr(next));
-                var ts.token = 0;
+                ts.token = 0;
                 return null;
             };
             if ((next === c)) {
@@ -753,8 +753,8 @@ function get_token(ts) {
                 }
             }
         };
-        var ts.end = pos;
-        var ts.token = kind_to_token[k];
+        ts.end = pos;
+        ts.token = kind_to_token[k];
     };
 };
 
@@ -828,6 +828,7 @@ function get_string(ts, pos, c, kind, regexpr) {
             }
         };
     };
-    var ts.end = pos;
-    var ts.token = STRING;
+    ts.end = pos;
+    ts.token = STRING;
 };
+

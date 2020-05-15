@@ -103,14 +103,17 @@ class JavaScript():
         if func == 'ord':
             return args + '.charCodeAt(0)'
         elif func == 'byte_at':
-            return node.args[0].id + '[' + node.args[1].id + ']'
+            return self.parse_node(node.args[0]) + '[' + self.parse_node(node.args[1]) + ']'
         elif func == 'range':
             # we will use
             # [...Array(5).keys()];
             # to allow using x = range(10), for example.
             # args: start, stop, step
             if nargs == 1:
-                return '[...Array(' + str(node.args[0].n) + ').keys()]'
+                if not isinstance(args, str):
+                    return '[...Array(' + str(node.args[0].n) + ').keys()]'
+                else:
+                    return '[...Array(' + args + ').keys()]'
             # TODO: handle other cases!
         elif func[-14:] == 'indents.append':
             return func[:-7] + '.push(' + args + ')'
@@ -129,15 +132,38 @@ class JavaScript():
                 return '(' + obj + ' instanceof Uint8Array)'
             else:  # default to class
                 return '(' + obj + ' instanceof ' + klass + ')'
+        elif func == 'print':
+            return 'console.log(' + args + ')'
 
         return func + '(' + args + ')'
 
     def parse_BinOp(self, node):
         def binop(op, l, r):
             return self.parse_node(l) + ' ' + self.parse_node(op) + ' ' + self.parse_node(r)
+
+        def array_mult(arr, r):
+            out = ' new Array(' + self.parse_node(r) + ')'
+            out += '.fill(' + str(arr[0]) + ')'
+            return out
+
+        def floor_div(l, r):
+            out = ' Math.floor(' + self.parse_node(l) + ', ' + self.parse_node(r) + ');'
+            return out
+
         left = node.left
         op = node.op
         right = node.right
+
+        if isinstance(op, FloorDiv):
+            return floor_div(left, right)
+        elif isinstance(op, Mult) and isinstance(right, Num) \
+           and isinstance(left, List):
+            arr = literal_eval(left)  # get actual array
+            if len(arr) == 1:
+                return array_mult(arr, right)
+            else:
+                raise Exception
+
         return ' ' + binop(op, left, right)
 
     def parse_If(self, node):
@@ -151,6 +177,13 @@ class JavaScript():
         else:
             out += '}'
         return out
+
+    def parse_BoolOp(self, node):
+        # ('test', 'body', 'orelse')
+        op = self.parse_node(node.op)
+        # values = self.parse_node(node.values)
+        values = f") {op} (".join([self.parse_node(node) for node in node.values])
+        return '((' + values + '))'
 
     def parse_Assign(self, node):
         # value and targets can be tuples!
@@ -168,11 +201,11 @@ class JavaScript():
                 pos = self.parse_node(x.slice)
                 return arr + '[' + pos + '] = ' + py + ';'
 
-            if isinstance(y, Call):
+            if isinstance(y, Call) and isinstance(y.func, Name):
                 if y.func.id == 'bytearray':
                     px = self.parse_node(x)
                     out = ' var ' + px + ' = ' + \
-                        'new Uint8Array(' + str(y.args[0].n) + ')'
+                        'new Uint8Array(' + str(y.args[0].n) + ');'
                     return out
 
 
@@ -185,6 +218,14 @@ class JavaScript():
             out = ' '.join([define(target_elts[i], value_elts[i]) for i in range(len(target_elts))])
         else:
             out = define(targets[0], value)
+        return out
+
+    def parse_AugAssign(self, node):
+        # ('target', 'op', 'value')
+        target = self.parse_node(node.target)
+        op = self.parse_node(node.op)
+        value = self.parse_node(node.value)
+        out = ' ' + target + op + '= ' + value + ';'
         return out
 
     def parse_Attribute(self, node):
@@ -202,7 +243,10 @@ class JavaScript():
         return value + '[' + _slice + ']'
 
     def parse_Return(self, node):
-        return 'return ' + self.parse_node(node.value) + ';'
+        if node.value == None:
+            return 'return null;'
+        else:
+            return 'return ' + self.parse_node(node.value) + ';'
 
     def parse_Expr(self, node):
         return self.parse_node(node.value) + ';'
@@ -222,6 +266,14 @@ class JavaScript():
 
         out = ' for (const ' + target + ' in ' + _iter + ') {' + body + '}'
         return out
+
+    def parse_While(self, node):
+        test = self.parse_node(node.test)
+        body = '; '.join([self.parse_node(node) for node in node.body])
+        # not easily mapped
+        # orelse = '; '.join([self.parse_node(node) for node in node.orelse])
+        return ' while (' + test + ') {' + body + '};'
+
 
     def parse_Slice(self, node):
         lower = self.parse_node(node.lower)
@@ -250,6 +302,17 @@ class JavaScript():
         elts = ', '.join([self.parse_node(e) for e in node.elts])
         return '[' + elts + ']'
 
+    def parse_Dict(self, node):
+        keys = node.keys
+        values = node.values
+        kvs = []
+        for i in range(len(keys)):
+            k = self.parse_node(keys[i])
+            v = self.parse_node(values[i])
+            kvs.append(k + ':' + v)
+
+        return '{' + ', '.join(kvs) + '}'
+
     def parse_IfExp(self, node):
         # ('test', 'body', 'orelse')
         test = self.parse_node(node.test)  # Compare, BoolOp
@@ -261,6 +324,10 @@ class JavaScript():
         exc = self.parse_node(node.exc)
         cause = self.parse_node(node.cause)
         return ' throw "' + exc.encode('unicode-escape').decode().replace('"', '\\"') + '";'
+
+    def parse_FloorDiv(self, node):
+        # Should be handled elsewhere, e.g. in BinOp
+        raise Exception
 
     @staticmethod
     def parse_arg(node):
@@ -274,6 +341,10 @@ class JavaScript():
     @staticmethod
     def parse_Sub(node):
         return '-'
+
+    @staticmethod
+    def parse_Mult(node):
+        return '*'
 
     @staticmethod
     def parse_Gt(node):
@@ -302,3 +373,27 @@ class JavaScript():
     @staticmethod
     def parse_Is(node):
         return "Object.is("
+
+    @staticmethod
+    def parse_And(node):
+        return "&&"
+
+    @staticmethod
+    def parse_Or(node):
+        return "||"
+
+    @staticmethod
+    def parse_Break(node):
+        return 'break;'
+
+    @staticmethod
+    def parse_Continue(node):
+        return 'continue;'
+
+    @staticmethod
+    def parse_Pass(node):
+        return '{};'
+
+    @staticmethod
+    def parse_BitAnd(node):
+        return '&'

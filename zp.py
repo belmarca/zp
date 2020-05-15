@@ -89,6 +89,26 @@ def parse_node(node):
         return parse_IfExp(node)
     elif isinstance(node, Raise):
         return parse_Raise(node)
+    elif isinstance(node, AugAssign):
+        return parse_AugAssign(node)
+    elif isinstance(node, Dict):
+        return parse_Dict(node)
+    elif isinstance(node, Global):
+        return parse_Global(node)
+    elif isinstance(node, Mult):
+        return parse_Mult(node)
+    elif isinstance(node, While):
+        return parse_While(node)
+    elif isinstance(node, Break):
+        return parse_Break(node)
+    elif isinstance(node, Continue):
+        return parse_Continue(node)
+    elif isinstance(node, FloorDiv):
+        return parse_FloorDiv(node)
+    elif isinstance(node, BitAnd):
+        return parse_BitAnd(node)
+    elif isinstance(node, Pass):
+        return parse_Pass(node)
 
 
 # Set up backends
@@ -99,12 +119,36 @@ javascript = JavaScript(parse_node)
 backend = object()
 
 
+def parse_Pass(node):
+    return backend.parse_Pass(node)
+
+
+def parse_BitAnd(node):
+    return backend.parse_BitAnd(node)
+
+
+def parse_FloorDiv(node):
+    return backend.parse_FloorDiv(node)
+
+
+def parse_While(node):
+    return backend.parse_While(node)
+
+
+def parse_Global(node):
+    return ''
+
+
 def parse_Raise(node):
     return backend.parse_Raise(node)
 
 
 def parse_Assign(node):
     return backend.parse_Assign(node)
+
+
+def parse_AugAssign(node):
+    return backend.parse_AugAssign(node)
 
 
 def parse_Attribute(node):
@@ -155,6 +199,10 @@ def parse_Sub(node):
     return backend.parse_Sub(node)
 
 
+def parse_Mult(node):
+    return backend.parse_Mult(node)
+
+
 def parse_Gt(node):
     return backend.parse_Gt(node)
 
@@ -183,18 +231,24 @@ def parse_Compare(node):
     return backend.parse_Compare(node)
 
 
-# def parse_BoolOp(node):
-#     op = node.op
-#     values = node.values
-#     return 0
+def parse_BoolOp(node):
+    return backend.parse_BoolOp(node)
 
 
-# def parse_Or(node):
-#     return 0
+def parse_Or(node):
+    return backend.parse_Or(node)
 
 
-# def parse_And(node):
-#     return 0
+def parse_And(node):
+    return backend.parse_And(node)
+
+
+def parse_Break(node):
+    return backend.parse_Break(node)
+
+
+def parse_Continue(node):
+    return backend.parse_Continue(node)
 
 
 def parse_NameConstant(node):
@@ -230,6 +284,10 @@ def parse_ClassDef(node):
 
 def parse_List(node):
     return backend.parse_List(node)
+
+
+def parse_Dict(node):
+    return backend.parse_Dict(node)
 
 
 def parse_arguments(node):

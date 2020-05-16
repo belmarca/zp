@@ -218,8 +218,16 @@ kw["yield"] = YIELD;
 kw["async"] = ASYNC;
 kw["await"] = AWAIT;
 
+function byte_at(x, i) {
+    if (((typeof x) === "string")) {
+        return x[i].charCodeAt(0);
+    } else {
+        return x[i];
+    }
+};
+
 function append_eol(buf) {
-    return buf + (((typeof buf) === "string") ? "\n" : "\n");
+    return (buf + (((typeof buf) === "string") ? "\n" : "\n"));
 };
 
 function init_stats() {
@@ -335,11 +343,11 @@ function make_char_kind() {
         set_char_kind(i, KIND_ERROR);
     };
     for (const i in [...Array(10).keys()]) {
-        set_char_kind("0".charCodeAt(0) + i, i);
+        set_char_kind(("0".charCodeAt(0) + i), i);
     };
     for (const i in [...Array(26).keys()]) {
-        set_char_kind("a".charCodeAt(0) + i, KIND_NAME);
-        set_char_kind("A".charCodeAt(0) + i, KIND_NAME);
+        set_char_kind(("a".charCodeAt(0) + i), KIND_NAME);
+        set_char_kind(("A".charCodeAt(0) + i), KIND_NAME);
     };
     set_char_kind("_".charCodeAt(0), KIND_NAME);
     set_char_kind("\"".charCodeAt(0), KIND_STRING);
@@ -402,6 +410,7 @@ function get_first_token(ts) {
 function get_token(ts) {
     if ((ts.dedents > 0)) {
         ts.dedents -= 1;
+        console.log("debug 1");
         ts.token = DEDENT;
         return null;
     };
@@ -412,13 +421,13 @@ function get_token(ts) {
             inc_stats("bol");
             var col = 0;
             while (true) {
-                var c = buf[pos];
+                var c = byte_at(buf, pos);
                 pos += 1;
                 if ((c === 32)) {
                     col += 1;
                 } else {
                     if ((c === 9)) {
-                        var col = Math.floor(col, 8); + 1 * 8;
+                        var col = ((((col / 8) >> 0) + 1) * 8);
                     } else {
                         if ((c === 12)) {
                             var col = 0;
@@ -430,7 +439,7 @@ function get_token(ts) {
             };
             if ((c === 35)) {
                 while (true) {
-                    var c = buf[pos];
+                    var c = byte_at(buf, pos);
                     pos += 1;
                     if ((((c === 10)) || ((c === 13)))) {
                         break;
@@ -438,7 +447,7 @@ function get_token(ts) {
                 };
             };
             if ((((c === 10)) || ((c === 13)))) {
-                if ((((c === 13)) && ((buf[pos] === 10)))) {
+                if ((((c === 13)) && ((byte_at(buf, pos) === 10)))) {
                     pos += 1;
                 };
                 ts.line_start = pos;
@@ -448,49 +457,54 @@ function get_token(ts) {
                 };
                 ts.start = ts.buf_len;
                 ts.end = ts.buf_len;
-                var n = ts.indents.length - 1;
+                var n = (ts.indents.length - 1);
                 if ((n > 0)) {
                     ts.indents = [0];
-                    ts.dedents = n - 1;
+                    ts.dedents = (n - 1);
+                    console.log("debug 2");
                     ts.token = DEDENT;
                     return null;
                 };
                 inc_found(KIND_EOF);
+                console.log("debug 3");
                 ts.token = ENDMARKER;
                 return null;
             };
             var n = ts.indents.length;
-            var i = n - 1;
+            var i = (n - 1);
             if ((ts.indents[i] < col)) {
                 ts.indents.push(col);
-                ts.start = pos - 1;
-                ts.end = pos - 1;
+                ts.start = (pos - 1);
+                ts.end = (pos - 1);
+                console.log("debug 4");
                 ts.token = INDENT;
                 return null;
             };
             if ((col < ts.indents[i])) {
                 while (true) {
-                    if ((ts.indents[i - 1] >= col)) {
+                    if ((ts.indents[(i - 1)] >= col)) {
                         break;
                     };
                     i -= 1;
                 };
-                if ((ts.indents[i - 1] !== col)) {
+                if ((ts.indents[(i - 1)] !== col)) {
                     console.log("inconsistent dedent");
+                    console.log("debug 5");
                     ts.token = ERRORTOKEN;
                     return null;
                 };
                 ts.indents = ts.indents.slice(0, i);
-                ts.dedents = n - i - 1;
-                ts.start = pos - 1;
-                ts.end = pos - 1;
+                ts.dedents = ((n - i) - 1);
+                ts.start = (pos - 1);
+                ts.end = (pos - 1);
+                console.log("debug 6");
                 ts.token = DEDENT;
                 return null;
             };
             var k = char_kind[c];
         } else {
             while (true) {
-                var c = buf[pos];
+                var c = byte_at(buf, pos);
                 var k = char_kind[c];
                 pos += 1;
                 if ((k !== KIND_WHITESPACE)) {
@@ -498,7 +512,7 @@ function get_token(ts) {
                 }
             };
             if ((k === KIND_NEWLINE)) {
-                if ((((c === 13)) && ((buf[pos] === 10)))) {
+                if ((((c === 13)) && ((byte_at(buf, pos) === 10)))) {
                     pos += 1;
                 };
                 ts.line_start = pos;
@@ -509,15 +523,16 @@ function get_token(ts) {
                 inc_found(KIND_EOF);
                 ts.start = ts.buf_len;
                 ts.end = ts.buf_len;
+                console.log("debug 7");
                 ts.token = ENDMARKER;
                 return null;
             }
         };
-        ts.start = pos - 1;
+        ts.start = (pos - 1);
         if ((k === KIND_NAME)) {
             inc_stats("k == KIND_NAME");
             while (true) {
-                var next = buf[pos];
+                var next = byte_at(buf, pos);
                 var k = char_kind[next];
                 if ((k > KIND_NAME)) {
                     break;
@@ -525,24 +540,24 @@ function get_token(ts) {
                 pos += 1;
             };
             if ((k === KIND_STRING)) {
-                var c = c & 223;
+                var c = (c & 223);
                 if ((((c === 66)) || ((c === 85)))) {
                     var kind = ((c === 66) ? BYTE_STRING : UNICODE_STRING);
-                    if ((ts.start === pos - 1)) {
-                        get_string(ts, pos + 1, next, kind, false);
+                    if ((ts.start === (pos - 1))) {
+                        get_string(ts, (pos + 1), next, kind, false);
                         return null;
                     };
-                    if ((ts.start === pos - 2)) {
-                        var c2 = buf[ts.start + 1] & 223;
+                    if ((ts.start === (pos - 2))) {
+                        var c2 = (byte_at(buf, (ts.start + 1)) & 223);
                         if ((c2 === 82)) {
-                            get_string(ts, pos + 1, next, kind, true);
+                            get_string(ts, (pos + 1), next, kind, true);
                             return null;
                         }
                     }
                 } else {
                     if ((c === 82)) {
-                        if ((ts.start === pos - 1)) {
-                            get_string(ts, pos + 1, next, PLAIN_STRING, true);
+                        if ((ts.start === (pos - 1))) {
+                            get_string(ts, (pos + 1), next, PLAIN_STRING, true);
                             return null;
                         }
                     }
@@ -550,7 +565,8 @@ function get_token(ts) {
             };
             inc_found(KIND_NAME);
             ts.end = pos;
-            ts.token = kw.get(buf.slice(ts.start, pos), NAME);
+            console.log("debug 8");
+            ts.token = (kw[buf.slice(ts.start, pos)] || NAME);
             return null;
         };
         if ((k >= KIND_AT)) {
@@ -565,11 +581,12 @@ function get_token(ts) {
             };
             inc_found(1);
             ts.end = pos;
+            console.log("debug 9");
             ts.token = kind_to_token[k];
             return null;
         };
         inc_stats("OTHER");
-        var next = buf[pos];
+        var next = byte_at(buf, pos);
         if ((k >= KIND_LEFTSHIFTEQUAL)) {
             inc_stats("k <= KIND_LEFTSHIFTEQUAL");
             if ((k < KIND_STAR)) {
@@ -582,6 +599,7 @@ function get_token(ts) {
                     if ((pos > ts.buf_len)) {
                         ts.start = ts.buf_len;
                         ts.end = ts.buf_len;
+                        console.log("debug 10");
                         ts.token = ENDMARKER;
                         return null;
                     } else {
@@ -589,6 +607,7 @@ function get_token(ts) {
                             continue;
                         } else {
                             ts.end = pos;
+                            console.log("debug 11");
                             ts.token = NEWLINE;
                             return null;
                         }
@@ -599,25 +618,28 @@ function get_token(ts) {
                     if ((char_kind[next] >= 9)) {
                         while (true) {
                             pos += 1;
-                            var next = buf[pos];
+                            var next = byte_at(buf, pos);
                             if ((char_kind[next] > 9)) {
                                 break;
                             }
                         };
                         inc_found(KIND_NUMBER);
                         ts.end = pos;
+                        console.log("debug 12");
                         ts.token = NUMBER;
                         return null;
                     } else {
-                        if ((((next === 46)) && ((buf[pos + 1] === 46)))) {
+                        if ((((next === 46)) && ((byte_at(buf, (pos + 1)) === 46)))) {
                             inc_found(KIND_ELLIPSIS);
-                            ts.end = pos + 2;
+                            ts.end = (pos + 2);
+                            console.log("debug 13");
                             ts.token = ELLIPSIS;
                             return null;
                         }
                     };
                     inc_found(KIND_DOT);
                     ts.end = pos;
+                    console.log("debug 14");
                     ts.token = DOT;
                     return null;
                 };
@@ -631,7 +653,7 @@ function get_token(ts) {
                     inc_stats("k <= KIND_STRING");
                     var base = 10;
                     if ((c === 48)) {
-                        var next = next & 223;
+                        var next = (next & 223);
                         if ((next === 88)) {
                             var base = 16;
                             pos += 1;
@@ -648,7 +670,7 @@ function get_token(ts) {
                                 }
                             }
                         };
-                        var next = buf[pos];
+                        var next = byte_at(buf, pos);
                     };
                     while (true) {
                         var k = char_kind[next];
@@ -656,7 +678,7 @@ function get_token(ts) {
                             {};
                         } else {
                             if ((k === KIND_NAME)) {
-                                var k = next & 223 - 55;
+                                var k = ((next & 223) - 55);
                             } else {
                                 k += 100;
                             }
@@ -665,15 +687,15 @@ function get_token(ts) {
                             break;
                         };
                         pos += 1;
-                        var next = buf[pos];
+                        var next = byte_at(buf, pos);
                     };
                     if ((((k === 21)) && ((ts.python === 2)))) {
                         pos += 1;
                     } else {
-                        if ((k === 100 + KIND_DOT)) {
+                        if ((k === (100 + KIND_DOT))) {
                             pos += 1;
                             while (true) {
-                                var next = buf[pos];
+                                var next = byte_at(buf, pos);
                                 var k = char_kind[next];
                                 if ((k > 9)) {
                                     break;
@@ -681,19 +703,19 @@ function get_token(ts) {
                                 pos += 1;
                             };
                         };
-                        var next = next & 223;
+                        var next = (next & 223);
                         if ((next === 69)) {
                             pos += 1;
-                            var next = buf[pos];
+                            var next = byte_at(buf, pos);
                             if ((((next === 43)) || ((next === 45)))) {
                                 pos += 1;
-                                var next = buf[pos];
+                                var next = byte_at(buf, pos);
                             };
                             var k = char_kind[next];
                             if ((k >= 9)) {
                                 while (true) {
                                     pos += 1;
-                                    var next = buf[pos];
+                                    var next = byte_at(buf, pos);
                                     var k = char_kind[next];
                                     if ((k > 9)) {
                                         break;
@@ -704,13 +726,14 @@ function get_token(ts) {
                     };
                     inc_found(KIND_NUMBER);
                     ts.end = pos;
+                    console.log("debug 15");
                     ts.token = NUMBER;
                     return null;
                 };
                 if ((k === KIND_COMMENT)) {
                     inc_stats("k == KIND_COMMENT");
                     inc_found(KIND_COMMENT);
-                    while ((buf[pos] !== 10)) {
+                    while ((byte_at(buf, pos) !== 10)) {
                         pos += 1;
                     };
                     continue;
@@ -722,8 +745,9 @@ function get_token(ts) {
                     continue;
                 };
                 console.log("error bad continuation line");
-                console.log("c=" + repr(c));
-                console.log("next=" + repr(next));
+                console.log(("c=" + repr(c)));
+                console.log(("next=" + repr(next)));
+                console.log("debug 16");
                 ts.token = 0;
                 return null;
             };
@@ -731,7 +755,7 @@ function get_token(ts) {
                 inc_found(2);
                 k += 2;
                 pos += 1;
-                var next = buf[pos];
+                var next = byte_at(buf, pos);
             }
         };
         inc_stats("SPECIAL");
@@ -754,6 +778,7 @@ function get_token(ts) {
             }
         };
         ts.end = pos;
+        console.log("debug 17");
         ts.token = kind_to_token[k];
     };
 };
@@ -784,16 +809,16 @@ function get_string(ts, pos, c, kind, regexpr) {
         }
     };
     var buf = ts.buf;
-    if ((((buf[pos] === c)) && ((buf[pos + 1] === c)))) {
+    if ((((byte_at(buf, pos) === c)) && ((byte_at(buf, (pos + 1)) === c)))) {
         pos += 2;
         while (true) {
-            var next = buf[pos];
-            if ((((next === c)) && ((buf[pos + 1] === c)) && ((buf[pos + 2] === c)))) {
+            var next = byte_at(buf, pos);
+            if ((((next === c)) && ((byte_at(buf, (pos + 1)) === c)) && ((byte_at(buf, (pos + 2)) === c)))) {
                 pos += 3;
                 break;
             } else {
                 if ((next === 92)) {
-                    if ((buf[pos + 1] === 10)) {
+                    if ((byte_at(buf, (pos + 1)) === 10)) {
                         ts.line_num += 1;
                     };
                     pos += 2;
@@ -807,13 +832,13 @@ function get_string(ts, pos, c, kind, regexpr) {
         };
     } else {
         while (true) {
-            var next = buf[pos];
+            var next = byte_at(buf, pos);
             if ((next === c)) {
                 pos += 1;
                 break;
             } else {
                 if ((next === 92)) {
-                    if ((buf[pos + 1] === 10)) {
+                    if ((byte_at(buf, (pos + 1)) === 10)) {
                         ts.line_num += 1;
                     };
                     pos += 2;
@@ -829,6 +854,7 @@ function get_string(ts, pos, c, kind, regexpr) {
         };
     };
     ts.end = pos;
+    console.log("debug 18");
     ts.token = STRING;
 };
 var _stats = init_stats();

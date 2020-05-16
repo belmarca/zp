@@ -579,7 +579,8 @@ def make_char_kind():
     return char_kind
 
 
-char_kind = make_char_kind()
+# char_kind = make_char_kind()
+char_kind = [17, 17, 17, 17, 17, 17, 17, 17, 17, 15, 16, 17, 15, 16, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 15, 48, 11, 13, 17, 34, 36, 11, 57, 60, 18, 44, 53, 46, 12, 22, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 54, 56, 30, 42, 26, 17, 50, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 58, 14, 61, 40, 10, 17, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 59, 38, 62, 52, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17]
 
 # ------------------------------------------------------------------------------
 
@@ -629,7 +630,6 @@ def get_token(ts):
 
     if ts.dedents > 0:
         ts.dedents -= 1
-        print("debug 1")
         ts.token = DEDENT
         return
 
@@ -685,11 +685,9 @@ def get_token(ts):
                 if n > 0:
                     ts.indents = [0]
                     ts.dedents = n - 1
-                    print("debug 2")
                     ts.token = DEDENT
                     return
                 inc_found(KIND_EOF)  # .0004
-                print("debug 3")
                 ts.token = ENDMARKER
                 return
 
@@ -700,7 +698,6 @@ def get_token(ts):
                 ts.indents.append(col)
                 ts.start = pos - 1
                 ts.end = pos - 1
-                print("debug 4")
                 ts.token = INDENT
                 return
 
@@ -713,7 +710,6 @@ def get_token(ts):
 
                 if ts.indents[i - 1] != col:
                     print("inconsistent dedent")
-                    print("debug 5")
                     ts.token = ERRORTOKEN
                     return
 
@@ -721,7 +717,6 @@ def get_token(ts):
                 ts.dedents = n - i - 1
                 ts.start = pos - 1
                 ts.end = pos - 1
-                print("debug 6")
                 ts.token = DEDENT
                 return
 
@@ -748,7 +743,6 @@ def get_token(ts):
                 inc_found(KIND_EOF)  # .0004
                 ts.start = ts.buf_len
                 ts.end = ts.buf_len
-                print("debug 7")
                 ts.token = ENDMARKER
                 return
 
@@ -802,7 +796,6 @@ def get_token(ts):
 
             inc_found(KIND_NAME)  # .4436
             ts.end = pos
-            print("debug 8")
             ts.token = kw.get(buf[ts.start : pos], NAME)
             return
 
@@ -818,7 +811,6 @@ def get_token(ts):
                     ts.paren_level += 1
             inc_found(1)  # .3711
             ts.end = pos
-            print("debug 9")
             ts.token = kind_to_token[k]
             return
 
@@ -844,14 +836,12 @@ def get_token(ts):
                     if pos > ts.buf_len:  # at end of source?
                         ts.start = ts.buf_len
                         ts.end = ts.buf_len
-                        print("debug 10")
                         ts.token = ENDMARKER
                         return
                     elif ts.paren_level > 0 or ts.token == NEWLINE:
                         continue  # go to top of tokenizer's main loop
                     else:
                         ts.end = pos
-                        print("debug 11")
                         ts.token = NEWLINE
                         return
 
@@ -866,19 +856,16 @@ def get_token(ts):
                                 break
                         inc_found(KIND_NUMBER)
                         ts.end = pos
-                        print("debug 12")
                         ts.token = NUMBER
                         return
                     elif next == 46 and byte_at(buf, pos + 1) == 46:  # '.'
                         inc_found(KIND_ELLIPSIS)
                         ts.end = pos + 2
-                        print("debug 13")
                         ts.token = ELLIPSIS
                         return
 
                     inc_found(KIND_DOT)
                     ts.end = pos
-                    print("debug 14")
                     ts.token = DOT
                     return
 
@@ -950,7 +937,6 @@ def get_token(ts):
 
                     inc_found(KIND_NUMBER)  # .0268
                     ts.end = pos
-                    print("debug 15")
                     ts.token = NUMBER
                     return
 
@@ -971,7 +957,6 @@ def get_token(ts):
                 print("error bad continuation line")
                 print("c=" + repr(c))
                 print("next=" + repr(next))
-                print("debug 16")
                 ts.token = 0  # TODO: fix
                 return
 
@@ -1004,7 +989,6 @@ def get_token(ts):
             inc_found(6)  # .0693
 
         ts.end = pos
-        print("debug 17")
         ts.token = kind_to_token[k]
 
 
@@ -1067,7 +1051,6 @@ def get_string(ts, pos, c, kind, regexpr):
 
     ts.end = pos
 
-    print("debug 18")
     ts.token = STRING
 
 _stats = init_stats()

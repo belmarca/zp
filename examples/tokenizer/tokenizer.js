@@ -385,7 +385,7 @@ function make_char_kind() {
     set_char_kind("}".charCodeAt(0), KIND_RBRACE);
     return char_kind;
 };
-var char_kind = make_char_kind();
+var char_kind = [17, 17, 17, 17, 17, 17, 17, 17, 17, 15, 16, 17, 15, 16, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 15, 48, 11, 13, 17, 34, 36, 11, 57, 60, 18, 44, 53, 46, 12, 22, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 54, 56, 30, 42, 26, 17, 50, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 58, 14, 61, 40, 10, 17, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 59, 38, 62, 52, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17];
 class TokenizerState {
     constructor(buf) {
         var self = this;
@@ -410,7 +410,6 @@ function get_first_token(ts) {
 function get_token(ts) {
     if ((ts.dedents > 0)) {
         ts.dedents -= 1;
-        console.log("debug 1");
         ts.token = DEDENT;
         return null;
     };
@@ -461,12 +460,10 @@ function get_token(ts) {
                 if ((n > 0)) {
                     ts.indents = [0];
                     ts.dedents = (n - 1);
-                    console.log("debug 2");
                     ts.token = DEDENT;
                     return null;
                 };
                 inc_found(KIND_EOF);
-                console.log("debug 3");
                 ts.token = ENDMARKER;
                 return null;
             };
@@ -476,7 +473,6 @@ function get_token(ts) {
                 ts.indents.push(col);
                 ts.start = (pos - 1);
                 ts.end = (pos - 1);
-                console.log("debug 4");
                 ts.token = INDENT;
                 return null;
             };
@@ -489,7 +485,6 @@ function get_token(ts) {
                 };
                 if ((ts.indents[(i - 1)] !== col)) {
                     console.log("inconsistent dedent");
-                    console.log("debug 5");
                     ts.token = ERRORTOKEN;
                     return null;
                 };
@@ -497,7 +492,6 @@ function get_token(ts) {
                 ts.dedents = ((n - i) - 1);
                 ts.start = (pos - 1);
                 ts.end = (pos - 1);
-                console.log("debug 6");
                 ts.token = DEDENT;
                 return null;
             };
@@ -523,7 +517,6 @@ function get_token(ts) {
                 inc_found(KIND_EOF);
                 ts.start = ts.buf_len;
                 ts.end = ts.buf_len;
-                console.log("debug 7");
                 ts.token = ENDMARKER;
                 return null;
             }
@@ -565,7 +558,6 @@ function get_token(ts) {
             };
             inc_found(KIND_NAME);
             ts.end = pos;
-            console.log("debug 8");
             ts.token = (kw[buf.slice(ts.start, pos)] || NAME);
             return null;
         };
@@ -581,7 +573,6 @@ function get_token(ts) {
             };
             inc_found(1);
             ts.end = pos;
-            console.log("debug 9");
             ts.token = kind_to_token[k];
             return null;
         };
@@ -599,7 +590,6 @@ function get_token(ts) {
                     if ((pos > ts.buf_len)) {
                         ts.start = ts.buf_len;
                         ts.end = ts.buf_len;
-                        console.log("debug 10");
                         ts.token = ENDMARKER;
                         return null;
                     } else {
@@ -607,7 +597,6 @@ function get_token(ts) {
                             continue;
                         } else {
                             ts.end = pos;
-                            console.log("debug 11");
                             ts.token = NEWLINE;
                             return null;
                         }
@@ -625,21 +614,18 @@ function get_token(ts) {
                         };
                         inc_found(KIND_NUMBER);
                         ts.end = pos;
-                        console.log("debug 12");
                         ts.token = NUMBER;
                         return null;
                     } else {
                         if ((((next === 46)) && ((byte_at(buf, (pos + 1)) === 46)))) {
                             inc_found(KIND_ELLIPSIS);
                             ts.end = (pos + 2);
-                            console.log("debug 13");
                             ts.token = ELLIPSIS;
                             return null;
                         }
                     };
                     inc_found(KIND_DOT);
                     ts.end = pos;
-                    console.log("debug 14");
                     ts.token = DOT;
                     return null;
                 };
@@ -726,7 +712,6 @@ function get_token(ts) {
                     };
                     inc_found(KIND_NUMBER);
                     ts.end = pos;
-                    console.log("debug 15");
                     ts.token = NUMBER;
                     return null;
                 };
@@ -747,7 +732,6 @@ function get_token(ts) {
                 console.log("error bad continuation line");
                 console.log(("c=" + repr(c)));
                 console.log(("next=" + repr(next)));
-                console.log("debug 16");
                 ts.token = 0;
                 return null;
             };
@@ -778,7 +762,6 @@ function get_token(ts) {
             }
         };
         ts.end = pos;
-        console.log("debug 17");
         ts.token = kind_to_token[k];
     };
 };
@@ -854,13 +837,13 @@ function get_string(ts, pos, c, kind, regexpr) {
         };
     };
     ts.end = pos;
-    console.log("debug 18");
     ts.token = STRING;
 };
 var _stats = init_stats();
 var found = _stats[0];
 var stats = _stats[1];
 var ts = new TokenizerState("def foo(x,y):\n    return x+y\n");
+
 get_first_token(ts);
 while ((ts.token !== ENDMARKER)) {
     var t = ts.token;

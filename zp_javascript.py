@@ -30,9 +30,9 @@ class JavaScript():
         body = '; '.join([self.parse_node(node) for node in node.body])
         name = node.name
 
-        # byte_at -> noop
-        if name == 'byte_at':
-            return ''
+        # # byte_at -> noop
+        # if name == 'byte_at':
+        #     return ''
         if name == '__init__':
             if node.args.args[0].arg == 'self':
                 args, kwarg = self.parse_arguments(node.args, 1)
@@ -63,9 +63,14 @@ class JavaScript():
             elif typ == 'bool':
                 typ = 'boolean'
 
-            if isinstance(op, Is):
+            if isinstance(op, Is) \
+               and typ not in ['string', 'number', 'boolean']:
                 out = self.parse_node(op) + '(typeof ' + arg + ')'
                 out += ', ' + typ + ')'
+            # special case for type(x) is type
+            elif isinstance(op, Is) \
+               and typ in ['string', 'number', 'boolean']:
+                out = ' ((typeof ' + arg + ') === "' + typ + '")'
             else:
                 out = ' ((typeof ' + arg + ') ' + self.parse_node(op)
                 out += ' ' + typ + ')'
@@ -78,7 +83,7 @@ class JavaScript():
         if len(ops) > 1:
             if isinstance(left, Call) and \
                left.func.id == 'type':
-                out = ' && '.join([type_compare(ops[i], comparators[i].id, left.args[i].id)
+                out = ' && '.join([type_compare(ops[i], left.args[i].id, comparators[i].id)
                                    for i in range(len(ops))])
                 return out
 
@@ -87,7 +92,7 @@ class JavaScript():
         else:
             if isinstance(left, Call):
                 if left.func.id == 'type':
-                    return type_compare(ops[0], comparators[0].id, left.args[0].id)
+                    return type_compare(ops[0], left.args[0].id, comparators[0].id)
             out = compare(ops[0], left, comparators[0])
         return out
 
@@ -100,10 +105,15 @@ class JavaScript():
         if keywords != []:
             raise Exception
 
+        if isinstance(node.func, Attribute) and node.func.attr == 'get':
+            out = '(' +node.func.value.id + '[' + self.parse_node(node.args[0]) + ']'
+            out += ' || ' + self.parse_node(node.args[1]) + ')'
+            return out
+
         if func == 'ord':
             return args + '.charCodeAt(0)'
-        elif func == 'byte_at':
-            return self.parse_node(node.args[0]) + '[' + self.parse_node(node.args[1]) + ']'
+        # elif func == 'byte_at':
+        #     return self.parse_node(node.args[0]) + '[' + self.parse_node(node.args[1]) + ']'
         elif func == 'range':
             # we will use
             # [...Array(5).keys()];
@@ -139,7 +149,7 @@ class JavaScript():
 
     def parse_BinOp(self, node):
         def binop(op, l, r):
-            return self.parse_node(l) + ' ' + self.parse_node(op) + ' ' + self.parse_node(r)
+            return '(' + self.parse_node(l) + ' ' + self.parse_node(op) + ' ' + self.parse_node(r) + ')'
 
         def array_mult(arr, r):
             out = ' new Array(' + self.parse_node(r) + ')'
@@ -147,7 +157,7 @@ class JavaScript():
             return out
 
         def floor_div(l, r):
-            out = ' Math.floor(' + self.parse_node(l) + ', ' + self.parse_node(r) + ');'
+            out = ' ((' + self.parse_node(l) + '/' + self.parse_node(r) + ') >> 0)'
             return out
 
         left = node.left

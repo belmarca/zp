@@ -843,7 +843,6 @@ var _stats = init_stats();
 var found = _stats[0];
 var stats = _stats[1];
 var ts = new TokenizerState("def foo(x,y):\n    return x+y\n");
-
 get_first_token(ts);
 while ((ts.token !== ENDMARKER)) {
     var t = ts.token;

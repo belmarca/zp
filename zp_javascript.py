@@ -4,6 +4,7 @@ class JavaScript():
 
     name = 'JavaScript'
     ext = '.js'
+    classes = set()
 
     def __init__(self, parse_node):
         self.parse_node = parse_node
@@ -217,6 +218,9 @@ class JavaScript():
                     out = ' var ' + px + ' = ' + \
                         'new Uint8Array(' + str(y.args[0].n) + ');'
                     return out
+                elif y.func.id in self.classes:
+                    px = self.parse_node(x)
+                    return ' var ' + px + ' = new ' + py + ';'
 
 
 
@@ -309,6 +313,9 @@ class JavaScript():
         bases = node.bases  # TODO: implement (multiple) inheritance
         keywords = node.keywords  # ignored
         decorator_list = node.decorator_list  # ignored
+
+        # store class name for future reference when instantiating
+        self.classes.add(name)
 
         return 'class ' + name + ' {' + body + '}'
 

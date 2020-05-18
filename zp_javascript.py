@@ -112,9 +112,10 @@ class JavaScript():
             return out
 
         if func == 'ord':
-            return args + '.charCodeAt(0)'
-        # elif func == 'byte_at':
-        #     return self.parse_node(node.args[0]) + '[' + self.parse_node(node.args[1]) + ']'
+            if isinstance(node.args[0], Str):
+                return str(ord(node.args[0].s))
+            else:
+                return args + '.charCodeAt(0)'
         elif func == 'range':
             # we will use
             # [...Array(5).keys()];

@@ -122,8 +122,9 @@ class JavaScript():
             # to allow using x = range(10), for example.
             # args: start, stop, step
             if nargs == 1:
-                if not isinstance(args, str):
-                    return '[...Array(' + str(node.args[0].n) + ').keys()]'
+                if isinstance(node.args[0], Num):
+                    # return '[...Array(' + str(node.args[0].n) + ').keys()]'
+                    return ''
                 else:
                     return '[...Array(' + args + ').keys()]'
             # TODO: handle other cases!
@@ -282,6 +283,16 @@ class JavaScript():
         target = self.parse_node(node.target)
         _iter = self.parse_node(node.iter)  # handle 'range' in parse_Call
         body = '; '.join([self.parse_node(node) for node in node.body])
+
+        # specialise 'for i in range(N)'
+        if isinstance(node.iter, Call) \
+           and node.iter.func.id == 'range' \
+           and len(node.iter.args) == 1 \
+           and isinstance(node.iter.args[0], Num):
+            out = ' for (const ' + target + '=0; ' + target + '<'
+            out += str(node.iter.args[0].n) + '; ' + target + '++) {'
+            out += body + '}'
+            return out
 
         out = ' for (const ' + target + ' in ' + _iter + ') {' + body + '}'
         return out

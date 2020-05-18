@@ -339,13 +339,13 @@ function make_char_kind() {
     function set_char_kind(code, tok) {
         char_kind[code] = tok;
     };
-    for (const i in [...Array(256).keys()]) {
+    for (const i = 0; i < 256; i++) {
         set_char_kind(i, KIND_ERROR);
     };
-    for (const i in [...Array(10).keys()]) {
+    for (const i = 0; i < 10; i++) {
         set_char_kind((48 + i), i);
     };
-    for (const i in [...Array(26).keys()]) {
+    for (const i = 0; i < 26; i++) {
         set_char_kind((97 + i), KIND_NAME);
         set_char_kind((65 + i), KIND_NAME);
     };
